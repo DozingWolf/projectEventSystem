@@ -1,9 +1,7 @@
-from crypt import methods
-import imp
 from flask import Blueprint
 
-helloBP = Blueprint('helloPage',__name__,url_prefix='/api/v1.0')
+helloBP = Blueprint('helloPage',__name__)
 
-@helloBP.route('/hello',methods=['POST'])
+@helloBP.route('/hello',methods=['GET'])
 def hello():
     return 'Hello World!'
