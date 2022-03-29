@@ -3,12 +3,13 @@
 create TABLE edm_test_schema.TMSTUSER
 (userid int not null,--人员id
 username varchar(10),--姓名
-passwd varchar,--密码
+passwd varchar(200),--密码
 createdate timestamp default now(),
 createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
-status int default 0);
+status int default 0,
+isadmin varchar(2) not null default '00');
 --部门表
 create table edm_test_schema.TMSTDEPT
 (deptid int not null,--部门id
