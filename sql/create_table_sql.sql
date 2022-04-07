@@ -9,7 +9,9 @@ createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
 status int default 0,
-isadmin varchar(2) not null default '00');
+isadmin varchar(2) not null default '00',
+CONSTRAINT tmstuser_pk PRIMARY KEY (userid)
+);
 --部门表
 create table edm_test_schema.TMSTDEPT
 (deptid int not null,--部门id
@@ -18,7 +20,9 @@ createdate timestamp default now(),
 createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
-status int default 0);
+status int default 0,
+CONSTRAINT tmstdept_pk PRIMARY KEY (deptid)
+);
 --项目概要表
 create table edm_test_schema.TPRJPROJECT
 (projectid int not null,--项目id
@@ -32,7 +36,9 @@ createdate timestamp default now(),
 createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
-status int default 0);
+status int default 0,
+CONSTRAINT tprjproject_pk PRIMARY KEY (projectid)
+);
 --项目事件表
 create table edm_test_schema.TPRJEVENT
 (projectid int not null,--项目id
@@ -45,7 +51,9 @@ createdate timestamp default now(),
 createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
-status int default 0);
+status int default 0,
+CONSTRAINT tprjevent_pk PRIMARY KEY (eventid)
+);
 --项目成员关系表
 create table edm_test_schema.TRLTPRJMEMBER
 (projectid int not null,--项目id
@@ -55,4 +63,6 @@ createdate timestamp default now(),
 createuserid int default 0,
 modifydate timestamp default now(),
 modifyuserid int default 0,
-status int default 0);
+status int default 0,
+CONSTRAINT trltprjmember_pk PRIMARY KEY (projectid, userid)
+);
