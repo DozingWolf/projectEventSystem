@@ -26,7 +26,8 @@ class User(db.Model):
         return self._authenticated
 
     def authenticate(self, pw):
-        checked = check_password_hash(self.password, pw)
+        checked = check_password_hash(self.password
+        , pw)
         self._authenticated = checked
         return self._authenticated
 
