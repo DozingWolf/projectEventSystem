@@ -1,36 +1,3 @@
-class AuthError(Exception):
-    code = 403
-    error_code = 1000
-    def __init__(self, message, status=-1):
-        super().__init__(message, status)
-        self.message = message
-        self.status = status
-
-class AuthNoUserError(AuthError):
-    def __init__(self, message, status=-1):
-        super().__init__(message, status)
-        self.message = message
-        self.status = status
-
-class AuthDupUserError(AuthError):
-    def __init__(self, message, status=-1):
-        super().__init__(message, status)
-        self.message = message
-        self.status = status
-
-class AuthNoParaError(AuthError):
-    def __init__(self, message, status=-1):
-        super().__init__(message, status)
-        self.message = message
-        self.status = status
-
-class AuthNoPermissionError(AuthError):
-    error_code = 1004
-    def __init__(self, message, status=-1):
-        super().__init__(message, status)
-        self.message = message
-        self.status = status
-
 class UploadError(Exception):
     def __init__(self, message, status=-1):
         super().__init__(message, status)
@@ -60,6 +27,47 @@ class TimerError(Exception):
         super().__init__(message, status)
         self.message = message
         self.status = status
+
+class AuthError(Exception):
+    code = '401'
+    error_code = '1400'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, arguname, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
+
+class AuthNoUserNameError(AuthError):
+    error_code = '1401'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, arguname, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
+
+class AuthNoPasswdError(AuthError):
+    error_code = '1402'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, arguname, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
+
+class AuthDupUserError(AuthError):
+    error_code = '1403'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
+
+class AuthNoPermissionError(AuthError):
+    error_code = '1404'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
 
 class InnerArgumentError(Exception):
     code = '520'
@@ -108,6 +116,15 @@ class PostNoParaError(PostParaError):
 
 class PostParaEmptyError(PostParaError):
     error_code = '1602'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, arguname, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
+
+class DBDataError(Exception):
+    code = '523'
+    error_code = '1700'
     def __init__(self, message, arguname, status=-1):
         super().__init__(message, arguname, status)
         self.message = message
