@@ -1,17 +1,17 @@
-from crypt import methods
 from flask import Blueprint,current_app,request,make_response,g
 from sqlalchemy import exc
 from model import db
 from tool.dataTranser import dateStrTransTimestamp
 from tool.sqlGenerator import insertSqlParaGenerator
+from tool.responseGenerator import responseStructures
 from controller.errorlist import PostNoParaError,PostParaEmptyError
 
 postDataBP = Blueprint('postData',__name__)
 
-def responseStructures(rstatus:str,rbody):
-    resp = make_response(rbody)
-    resp.status = rstatus
-    return resp
+# def responseStructures(rstatus:str,rbody):
+#     resp = make_response(rbody)
+#     resp.status = rstatus
+#     return resp
 
 def valueNoneemptyJudgement(input,argsname:str):
     if len(input) == 0:
