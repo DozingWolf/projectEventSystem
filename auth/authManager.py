@@ -1,4 +1,6 @@
-from flask import current_app,request,session,Blueprint,g
+from functools import wraps
+from textwrap import wrap
+from flask import current_app,request,session,Blueprint,g,redirect,url_for
 from time import time
 from model import db
 from model.user import User
@@ -74,16 +76,17 @@ def loginUser():
         countRtn = countExeSql.fetchall()
         current_app.logger.debug(countRtn)
         if countRtn[0][0] == 1:
-            newUser = User(userid=loginPara['userid'],username=loginPara['username'],pcode='001')
+            newUser = User(userid=loginPara['userid'],username=loginPara['username'],pcode='001',logintime=loginTime)
+            loginFlag = newUser.isLogin()
             # 加上session看看
-            session['logged_in'] = True
+            session['logged_in'] = loginFlag
             session['user_id'] = newUser.getUserID()
             session['user_name'] = newUser.getUserName()
             session['user_pcode'] = newUser.getUserPermissions()
-            session['login_time'] = loginTime
+            session['login_time'] = newUser.getLoginTime()
             # 把g也加上试试
-            g.user = newUser
-            g.login_time = loginTime
+            # g好像有点问题，一直用不起来，暂时先用session吧
+            # g.user = newUser
         else:
             raise DBDataError(message='no user data found',
                               arguname='')
@@ -122,3 +125,36 @@ def logoutUser():
     except Exception as err:
         current_app.logger.error(err)
         return {'msg':'error!'}
+
+@authManagerBP.route('/mustLogin',methods=['GET'])
+def mustLogin():
+    return responseStructures(rstatus='200',
+                              rbody={'error_code':'2000',
+                                     'error_msg':'u must login system to check this intf',
+                                     'args':''})
+
+def isLoginCheck(func):
+    # 系统登陆校验装饰器
+    @wraps(func)
+    def loginCheck(*args, **kwargs):
+        if session.get('logged_in'):
+            current_app.logger.info(session.get('user_name'))
+            return func(*args, **kwargs)
+        else:
+            current_app.logger.info(session.get('logged_in'))
+            return redirect(url_for('authUser.mustLogin'))
+    return loginCheck
+
+def isPermissionCheck(func):
+    # 系统权限校验器
+    @wrap(func)
+    def permissionCheck(*args, **kwargs):
+        if session.get('user_pcode'):
+            selectPerSql = '''
+                              seelct count(1) from edm_test_schema.tmstuserpermission
+                              where 1=1
+                                and permissionid = :permissionid
+                                and userid = :userid
+            '''
+            selectPerPara = {'permissionid':session.get('user_pcode'),
+                             'userid':session.get('user_id')}
