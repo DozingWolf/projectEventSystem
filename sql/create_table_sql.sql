@@ -1,68 +1,153 @@
 --项目事件记录工具
---人员表
-create TABLE edm_test_schema.TMSTUSER
-(userid int not null,--人员id
-username varchar(10),--姓名
-passwd varchar(200),--密码
-createdate timestamp default now(),
-createuserid int default 0,
-modifydate timestamp default now(),
-modifyuserid int default 0,
-status int default 0,
-isadmin varchar(2) not null default '00',
-CONSTRAINT tmstuser_pk PRIMARY KEY (userid)
-);
+
+-- edm_test_schema.tmstdept definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tmstdept;
+
 --部门表
-create table edm_test_schema.TMSTDEPT
-(deptid int not null,--部门id
-deptname varchar(60),--部门名
-createdate timestamp default now(),
-createuserid int default 0,
-modifydate timestamp default now(),
-modifyuserid int default 0,
-status int default 0,
-CONSTRAINT tmstdept_pk PRIMARY KEY (deptid)
+CREATE TABLE edm_test_schema.tmstdept (
+	deptid int4 NOT NULL,
+	deptname varchar(60) NULL,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT tmstdept_pk PRIMARY KEY (deptid),
+	CONSTRAINT unikey_tmstdept_deptname UNIQUE (deptname)
 );
---项目概要表
-create table edm_test_schema.TPRJPROJECT
-(projectid int not null,--项目id
-ownerid int,--项目所属货主部门编码
-projectcode varchar(30),--项目编码
-projectname varchar(200),--项目名
-prjinitiatorid int,--项目发起人id
-prjbrif varchar(800),--项目简介
-prjcreationday timestamp default now(),--项目发起事件
-createdate timestamp default now(),
-createuserid int default 0,
-modifydate timestamp default now(),
-modifyuserid int default 0,
-status int default 0,
-CONSTRAINT tprjproject_pk PRIMARY KEY (projectid)
+
+
+-- edm_test_schema.tmstpermission definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tmstpermission;
+
+--权限明细表
+CREATE TABLE edm_test_schema.tmstpermission (
+	permissionid int4 NOT NULL,
+	permissionname varchar(30) NOT NULL,
+	urlitem varchar(100) NOT NULL,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT tmstpermission_pk PRIMARY KEY (permissionid),
+	CONSTRAINT unikey_tmstpermission_pid_url UNIQUE (permissionid, urlitem)
 );
+
+
+-- edm_test_schema.tmstuser definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tmstuser;
+--人员表
+CREATE TABLE edm_test_schema.tmstuser (
+	userid int4 NOT NULL,
+	username varchar(10) NULL,
+	passwd varchar(200) NULL,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	isadmin varchar(2) NOT NULL DEFAULT '00'::character varying,
+	CONSTRAINT tmstuser_pk PRIMARY KEY (userid),
+	CONSTRAINT unikey_tmstuser_id_uname UNIQUE (username, userid)
+);
+
+
+-- edm_test_schema.tmstuserpermission definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tmstuserpermission;
+
+--权限主表
+CREATE TABLE edm_test_schema.tmstuserpermission (
+	userid int4 NOT NULL,
+	permissionid int4 NOT NULL,
+	permissionmemo varchar(100) NULL,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT tmstuserpermission_pk PRIMARY KEY (userid, permissionid)
+);
+COMMENT ON TABLE edm_test_schema.tmstuserpermission IS '权限组头表';
+COMMENT ON COLUMN edm_test_schema.tmstuserpermission.userid IS '权限用户ID';
+COMMENT ON COLUMN edm_test_schema.tmstuserpermission.permissionid IS '权限组ID';
+COMMENT ON COLUMN edm_test_schema.tmstuserpermission.permissionmemo IS '权限组添加说明';
+
+-- edm_test_schema.tprjevent definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tprjevent;
+
 --项目事件表
-create table edm_test_schema.TPRJEVENT
-(projectid int not null,--项目id
-eventid int not null,--事件id
-eventtime timestamp default now(),--事件时间
-eventcreationid int,--事件发起人id
-eventstatus int,--事件状态id
-eventmsg varchar(1000),--事件内容
-createdate timestamp default now(),
-createuserid int default 0,
-modifydate timestamp default now(),
-modifyuserid int default 0,
-status int default 0,
-CONSTRAINT tprjevent_pk PRIMARY KEY (eventid)
+CREATE TABLE edm_test_schema.tprjevent (
+	projectid int4 NOT NULL,
+	eventid int4 NOT NULL,
+	eventtime timestamp NULL DEFAULT now(),
+	eventcreationid int4 NULL,
+	eventstatus int4 NULL,
+	eventmsg varchar(1000) NULL,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT tprjevent_pk PRIMARY KEY (eventid)
 );
+
+
+-- edm_test_schema.tprjproject definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.tprjproject;
+
+--项目概要表
+CREATE TABLE edm_test_schema.tprjproject (
+	projectid int4 NOT NULL,
+	ownerid int4 NULL,
+	projectcode varchar(30) NULL,
+	projectname varchar(200) NULL,
+	prjinitiatorid int4 NULL,
+	prjbrif varchar(800) NULL,
+	prjcreationday timestamp NULL DEFAULT now(),
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT tprjproject_pk PRIMARY KEY (projectid)
+);
+
+
+-- edm_test_schema.trltprjmember definition
+
+-- Drop table
+
+-- DROP TABLE edm_test_schema.trltprjmember;
+
 --项目成员关系表
-create table edm_test_schema.TRLTPRJMEMBER
-(projectid int not null,--项目id
-userid int not null default 0,--用户id
-memberstatus int default 0,--成员状态
-createdate timestamp default now(),
-createuserid int default 0,
-modifydate timestamp default now(),
-modifyuserid int default 0,
-status int default 0,
-CONSTRAINT trltprjmember_pk PRIMARY KEY (projectid, userid)
+CREATE TABLE edm_test_schema.trltprjmember (
+	projectid int4 NOT NULL,
+	userid int4 NOT NULL DEFAULT 0,
+	memberstatus int4 NULL DEFAULT 0,
+	createdate timestamp NULL DEFAULT now(),
+	createuserid int4 NULL DEFAULT 0,
+	modifydate timestamp NULL DEFAULT now(),
+	modifyuserid int4 NULL DEFAULT 0,
+	status int4 NULL DEFAULT 0,
+	CONSTRAINT trltprjmember_pk PRIMARY KEY (projectid, userid)
 );
+
