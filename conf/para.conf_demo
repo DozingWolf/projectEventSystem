@@ -1,9 +1,8 @@
-[postgresql]
-dbname=test_db
-user=edm_test_user
-password=EDM_TEST_USER
-host=172.16.118.110
-port=5432
 [flask]
-port = 80
-level = debug
+PORT = 80
+DEBUG = True
+SQLALCHEMY_DATABASE_URI = postgresql://edm_test_user:edm_test_user@127.0.0.1:5432/edm_test_db
+SECRET_KEY = KUYGk21jbk35156ljdfdfqILUKY
+PERMANENT_SESSION_LIFETIME = 3600
+# SERVER_NAME = 127.0.0.1:5000
+LOGDIR = ./log/main.log
