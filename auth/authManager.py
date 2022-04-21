@@ -1,6 +1,5 @@
 from functools import wraps
-from textwrap import wrap
-from flask import current_app,request,session,Blueprint,g,redirect,url_for
+from flask import current_app,request,session,Blueprint
 from time import time
 from model import db
 from model.user import User
