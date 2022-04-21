@@ -5,6 +5,7 @@ from tool.dataTranser import dateStrTransTimestamp
 from tool.sqlGenerator import insertSqlParaGenerator
 from tool.responseGenerator import responseStructures
 from controller.errorlist import PostNoParaError,PostParaEmptyError
+from auth.authManager import isLoginCheck,isPermissionCheck
 
 postDataBP = Blueprint('postData',__name__)
 
@@ -20,6 +21,7 @@ def valueNoneemptyJudgement(input,argsname:str):
 
 
 @postDataBP.route('/postCreateUser',methods=['POST'])
+@isLoginCheck
 def postCreateUser():
 # 新增用户接口
     # 标准SQL和变量定义
@@ -116,6 +118,7 @@ def postCreateUser():
     
 
 @postDataBP.route('/postCreateDept',methods=['POST'])
+@isLoginCheck
 def postCreateDept():
 # 新增用户接口
     # 标准SQL和变量定义
@@ -185,6 +188,7 @@ def postCreateDept():
                                          'args':''})
 
 @postDataBP.route('/postCreatePrject',methods=['POST'])
+@isLoginCheck
 def postCreatePrject():
 # 新增项目接口
     # 标准SQL和变量定义
@@ -312,6 +316,7 @@ def postCreatePrject():
 
 
 @postDataBP.route('/postCreateEvent',methods=['POST'])
+@isLoginCheck
 def postCreateEvent():
 # 新增项目事件接口
     # 标准SQL和变量定义
@@ -393,6 +398,7 @@ def postCreateEvent():
 
 
 @postDataBP.route('/postCreatePrjMember',methods=['POST'])
+@isLoginCheck
 def postCreatePrjMember():
 # 新增项目成员接口
     # 标准SQL和变量定义

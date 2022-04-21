@@ -2,10 +2,12 @@ from flask import Blueprint,current_app,request
 from json import dumps as jdump
 from model import db
 from tool import dataTranser
+from auth.authManager import isLoginCheck,isPermissionCheck
 
 getDataBP = Blueprint('getData',__name__)
 
 @getDataBP.route('/getProjectMember',methods=['GET'])
+@isLoginCheck
 def getProjectMember():
 # 获取项目所对应的项目成员和项目所属部门
     # 标准查询和变量定义
@@ -70,6 +72,7 @@ def getProjectMember():
     return returnData
 
 @getDataBP.route('/getProjectEvent',methods=['GET'])
+@isLoginCheck
 def getProjectEvent():
 # 获取项目包含的事件情况
     # 标准查询和变量定义
@@ -131,6 +134,7 @@ def getProjectEvent():
     return returnData
 
 @getDataBP.route('/getProjectList',methods=['GET'])
+@isLoginCheck
 def getProjectList():
 # 获取项目列表
     # 标准查询和变量定义
@@ -195,6 +199,7 @@ def getProjectList():
     return returnData
 
 @getDataBP.route('/getDeptList',methods=['GET'])
+@isLoginCheck
 def getDeptList():
 # 获取部门列表
     # 标准查询和变量定义
@@ -237,6 +242,7 @@ def getDeptList():
     return returnData
 
 @getDataBP.route('/getUserList',methods=['GET'])
+@isLoginCheck
 def getUserList():
 # 获取用户列表
     # 标准查询和变量定义
