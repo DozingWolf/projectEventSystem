@@ -1,5 +1,6 @@
 from functools import wraps
 from flask import current_app,request,session,Blueprint
+from base64 import urlsafe_b64encode,urlsafe_b64decode
 from time import time
 from model import db
 from model.user import User
