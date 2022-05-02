@@ -133,3 +133,4 @@ dmypy.json
 *.code-workspace
 conf/para.conf
 sql/insert_*.sql
+log/*
