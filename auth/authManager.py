@@ -1,10 +1,11 @@
 from functools import wraps
 from flask import current_app,request,session,Blueprint
-from base64 import urlsafe_b64encode,urlsafe_b64decode
 from time import time
+from werkzeug.security import check_password_hash
 from model import db
 from model.user import User
 from tool.responseGenerator import responseStructures,responseStructureswithCookie
+from tool.dataTranser import b64TransString
 from controller.errorlist import AuthNoPermissionError,AuthError,DBDataError
 
 authManagerBP = Blueprint('authUser',__name__)
@@ -54,9 +55,6 @@ def loginUser():
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
                                          'args':''})
-    # 保留一段用于处理密码加解密
-    # …………
-    # …………
     # 开始查询并验证用户信息
     # 构造验证用户sql
     current_app.logger.debug('start execute sql')
@@ -69,11 +67,11 @@ def loginUser():
                     'userid':loginPara['userid'],
                     'passwd':loginPara['passwd']}
     # 构造获取用户权限sql
-    selectAdminSql = 'select isadmin from edm_test_schema.tmstuser where userid = :userid'
-    selectAdminPara = {'userid':loginPara['userid']}
+    selectUserSql = 'select isadmin, passwd from edm_test_schema.tmstuser where userid = :userid'
+    selectUserPara = {'userid':loginPara['userid']}
     selectPerSql = '''select 
                       u.userid ,u.username ,up.permissionmemo ,p.permissionid ,p.permissionname ,
-                      p.urlitem 
+                      p.urlitem
                       from edm_test_schema.tmstuser u
                       inner join edm_test_schema.tmstuserpermission up on u.userid  = up.userid 
                       inner join edm_test_schema.tmstpermission p on up.permissionid  = p.permissionid 
@@ -90,7 +88,24 @@ def loginUser():
         countRtn = countExeSql.fetchall()
         current_app.logger.debug(countRtn)
         if countRtn[0][0] == 1:
-            newUser = User(userid=loginPara['userid'],username=loginPara['username'],pcode='001',logintime=loginTime)
+            # 对用户进行密码获取
+            # 同步将一些其他数据也先取出，减少后续DB查询次数
+            getDBPasswd = db.session.execute(selectUserSql,selectUserPara)
+            getDBPasswdRtn = getDBPasswd.fetchall()
+            # 加入用户密码校验
+            # 先将base64字符串转换为提交的密码
+            userPw = b64TransString(input=loginPara['passwd'])
+            # 将提交的密码进行加密
+            encryptPw = encryptPw(input=userPw)
+            # 将加密后的密码与数据库取出的数据进行比对
+            if check_password_hash(pwhash = getDBPasswdRtn[0][1],password = encryptPw):
+                # 如果一致则建立用户对象
+                current_app.logger.debug('password match')
+                newUser = User(userid=loginPara['userid'],username=loginPara['username'],pcode='001',logintime=loginTime)
+            else:
+                # 如果不一致反馈401错误
+                current_app.logger.debug('password mismatch')
+                raise AuthError(message='password mismatch',arguname='passwd')
             loginFlag = newUser.isLogin()
             # 加上session看看
             session['logged_in'] = loginFlag
@@ -103,9 +118,9 @@ def loginUser():
                               arguname='')
         # 获取人员权限
         # 需要考虑人员是管理员的情况，管理员标记在人员表上的isadmin
-        isAdminExeSql = db.session.execute(selectAdminSql,selectAdminPara)
-        isAdminRth = isAdminExeSql.fetchall()
-        if isAdminRth[0][0] == '10':
+        # isAdminExeSql = db.session.execute(selectUserSql,selectUserPara)
+        # isAdminRth = isAdminExeSql.fetchall()
+        if getDBPasswdRtn[0][0] == '10':
             # 不是管理员，获取权限列表清单
             current_app.logger.debug('%s is admin'%session.get('user_name'))
             session['isadmin'] = True
