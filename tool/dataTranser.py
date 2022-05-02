@@ -1,6 +1,7 @@
 from flask import current_app
 from datetime import datetime
 from time import mktime,strptime
+from base64 import urlsafe_b64decode,urlsafe_b64encode
 from controller.errorlist import InnerArgumentInputError
 
 def dbDataTransJson(inputdata:list,title:list):
@@ -42,3 +43,18 @@ def dateStrTransTimestamp(input:str):
     rtnmsg = type(rtnTimestamp)
     current_app.logger.debug('type is :%s'%rtnmsg)
     return rtnTimestamp
+
+def b64TransString(input:str):
+    # 将base64转换为password
+    b64bytes = bytes(input,encoding='utf8')
+    # current_app.logger.debug('password is : %s'%b64bytes)
+    passwd = urlsafe_b64decode(b64bytes).decode('utf-8')
+    current_app.logger.debug('str password is : %s'%passwd)
+    return passwd
+
+def strTransB64(input:str):
+    # 将字符串转换为base64
+    bytesStr = bytes(input,encoding='utf8')
+    encryptStr = urlsafe_b64encode(bytesStr).decode('utf-8')
+    current_app.logger.debug('encrypt string is %s'%encryptStr)
+    return encryptStr
