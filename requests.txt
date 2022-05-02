@@ -1,0 +1,7 @@
+Flask
+Flask-SQLAlchemy
+SQLAlchemy == 1.4.31
+psycopg2
+konfig
+pyjwt
+requests
