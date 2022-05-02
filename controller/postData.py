@@ -1,5 +1,6 @@
 from flask import Blueprint,current_app,request,make_response,g
 from sqlalchemy import exc
+from werkzeug.security import generate_password_hash
 from model import db
 from tool.dataTranser import dateStrTransTimestamp
 from tool.sqlGenerator import insertSqlParaGenerator
@@ -47,7 +48,10 @@ def postCreateUser():
             # passwd 用户密码
             if 'passwd' in inputPara:
                 valueNoneemptyJudgement(input=inputPara['passwd'],argsname='passwd')
-                insertArg['passwd'] = inputPara['passwd']
+                # 此处改为存储加密后的密码值
+                insertArg['passwd'] = generate_password_hash(password=inputPara['passwd'],
+                                                             method='pbkdf2:sha256',
+                                                             salt_length=8)
             else:
                 current_app.logger.info('No argument passwd input')
                 raise PostNoParaError(message='post request havent json payload',
