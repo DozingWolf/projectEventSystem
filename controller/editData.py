@@ -1,4 +1,4 @@
-from flask import Blueprint,current_app,request
+from flask import Blueprint,current_app,request,session
 from sqlalchemy import exc
 from werkzeug.security import generate_password_hash
 from time import strftime,localtime
@@ -15,18 +15,20 @@ def valueNoneemptyJudgement(input,argsname:str):
         raise PostParaEmptyError(message='post request havent value',
                                  arguname=argsname)
 
-@editDataBP.route('editPasswd',methods=['POST'])
+@editDataBP.route('/editPasswd',methods=['POST'])
+@isLoginCheck
+@isPermissionCheck
 def editPasswd():
 # 修改用户密码接口
     # 标准sql定义
     updateSQL = '''
-            update edm_test_schema.tmstuser u set 
-            u.passwd = :passwd , 
-            u.modifyuserid = :modifyuserid , 
-            u.modifydate = to_timestamp(:modifydate,'yyyy-mm-dd hh24:mi:ss')
+            update edm_test_schema.tmstuser set 
+            passwd = :passwd , 
+            modifyuserid = :modifyuserid , 
+            modifydate = to_timestamp(:modifydate,'yyyy-mm-dd hh24:mi:ss')
     '''
     updateWhere = '''
-            where u.userid = :userid
+            where userid = :userid
     '''
     updateArg = {'modifyuserid':0}
     # 获取接口变量值
@@ -58,7 +60,7 @@ def editPasswd():
                                       arguname='userid')
             # modifyuserid 编辑用户id
             # 从session内取
-
+            updateArg['modifyuserid'] = session.get('user_id')
             # modifydate 编辑时间
             modifyDate = strftime('%Y-%m-%d %H:%M:%S',localtime())
             updateArg['modifydate'] = modifyDate
@@ -94,6 +96,7 @@ def editPasswd():
     except exc.SQLAlchemyError as err:
         current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1501',
@@ -102,6 +105,7 @@ def editPasswd():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -115,6 +119,7 @@ def editPasswd():
     except Exception as err:
         current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
         current_app.logger.debug(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',

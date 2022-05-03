@@ -2,6 +2,7 @@ from functools import wraps
 from flask import current_app,request,session,Blueprint
 from time import time
 from werkzeug.security import check_password_hash
+from traceback import print_exc
 from model import db
 from model.user import User
 from tool.responseGenerator import responseStructures,responseStructureswithCookie
@@ -143,6 +144,7 @@ def loginUser():
     except Exception as err:
         current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='521',
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
@@ -224,3 +226,16 @@ def isPermissionCheck(func):
                                                  'error_msg':'u havent this url permission',
                                                  'args':''})
     return permissionCheck
+
+def isAdminCheck(func):
+    # 系统权限校验器
+    # 有些权限只需要判断是否是管理员即可，写一个简化的装饰器
+    @wraps(func)
+    def adminCheck(*args, **kwargs):
+        if session.get('isadmin'):
+            return func(*args, **kwargs)
+        else:
+            return responseStructures(rstatus='403',
+                                          rbody={'error_code':1000,
+                                                 'error_msg':'this url only admin are allowed to visit',
+                                                 'args':''})
