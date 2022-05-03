@@ -7,6 +7,7 @@ from auth.authManager import authManagerBP
 from controller.helloPage import helloBP
 from controller.getData import getDataBP
 from controller.postData import postDataBP
+from controller.editData import editDataBP
 # load parameter
 confFile = Config('./conf/para.conf')
 # add loghandler and set level and format
@@ -32,6 +33,7 @@ app.register_blueprint(helloBP,url_prefix='/api/v1.0')
 app.register_blueprint(authManagerBP,url_prefix='/api/v1.0/auth')
 app.register_blueprint(getDataBP,url_prefix='/api/v1.0/getdata')
 app.register_blueprint(postDataBP,url_prefix='/api/v1.0/postdata')
+app.register_blueprint(editDataBP,url_prefix='/api/v1.0/editdata')
 # initial db
 db.init_app(app)
 
