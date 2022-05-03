@@ -57,15 +57,13 @@ def loginUser():
                                          'args':''})
     # 开始查询并验证用户信息
     # 构造验证用户sql
-    current_app.logger.debug('start execute sql')
+    current_app.logger.debug('start makr query sql')
     countNumSQL = '''select count(1) from edm_test_schema.tmstuser t 
                      where 1=1 
                        and t.username = :username  
-                       and t.userid = :userid
-                       and t.passwd = :passwd'''
+                       and t.userid = :userid'''
     countNumPara = {'username':loginPara['username'],
-                    'userid':loginPara['userid'],
-                    'passwd':loginPara['passwd']}
+                    'userid':loginPara['userid']}
     # 构造获取用户权限sql
     selectUserSql = 'select isadmin, passwd from edm_test_schema.tmstuser where userid = :userid'
     selectUserPara = {'userid':loginPara['userid']}
@@ -84,8 +82,10 @@ def loginUser():
     selectPerPara = {'userid':loginPara['userid']}
     # 开始执行查询
     try:
+        current_app.logger.debug('start execute sql')
         countExeSql = db.session.execute(countNumSQL,countNumPara)
         countRtn = countExeSql.fetchall()
+        current_app.logger.debug('query result is :')
         current_app.logger.debug(countRtn)
         if countRtn[0][0] == 1:
             # 对用户进行密码获取
@@ -94,11 +94,10 @@ def loginUser():
             getDBPasswdRtn = getDBPasswd.fetchall()
             # 加入用户密码校验
             # 先将base64字符串转换为提交的密码
+            current_app.logger.debug('b64 passwd is : %s'%loginPara['passwd'])
             userPw = b64TransString(input=loginPara['passwd'])
-            # 将提交的密码进行加密
-            encryptPw = encryptPw(input=userPw)
             # 将加密后的密码与数据库取出的数据进行比对
-            if check_password_hash(pwhash = getDBPasswdRtn[0][1],password = encryptPw):
+            if check_password_hash(pwhash = getDBPasswdRtn[0][1],password = userPw):
                 # 如果一致则建立用户对象
                 current_app.logger.debug('password match')
                 newUser = User(userid=loginPara['userid'],username=loginPara['username'],pcode='001',logintime=loginTime)
