@@ -1,5 +1,6 @@
-from flask import Blueprint,current_app,request,make_response,g
+from flask import Blueprint,current_app,request,session
 from sqlalchemy import exc
+from traceback import print_exc
 from werkzeug.security import generate_password_hash
 from model import db
 from tool.dataTranser import dateStrTransTimestamp
@@ -30,7 +31,7 @@ def postCreateUser():
             insert into edm_test_schema.tmstuser (userid, username, passwd, isadmin,createuserid)
             values (nextval('edm_test_schema.seq_tmstuser_userid'), :username, :passwd, :isadmin, :createuserid)
     '''
-    insertArg = {'createuserid':0}
+    insertArg = {}
     # 获取用户传递的变量数据并判断    
     try:
         # 获取json传递的变量
@@ -64,6 +65,8 @@ def postCreateUser():
                 current_app.logger.info('No argument isadmin input')
                 raise PostNoParaError(message='post request havent json payload',
                                       arguname='isadmin')
+            # createuser 取session内的数据
+            insertArg['createuserid'] = session.get('user_id')
         else:
             current_app.logger.info('No query para input')
             raise PostNoParaError(message='post request havent json payload',
@@ -81,6 +84,7 @@ def postCreateUser():
     except Exception as err:
         current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='521',
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
@@ -95,6 +99,7 @@ def postCreateUser():
     except exc.SQLAlchemyError as err:
         current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1501',
                                          'error_msg':'SQLAlchemyError, please check log file to find detail error message',
@@ -102,6 +107,7 @@ def postCreateUser():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -115,6 +121,7 @@ def postCreateUser():
     except Exception as err:
         current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
         current_app.logger.debug(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
@@ -130,7 +137,7 @@ def postCreateDept():
             insert into edm_test_schema.tmstdept (deptid, deptname, createuserid)
             values (nextval('edm_test_schema.seq_tmstdept_deptid'), :deptname, :createuserid)
     '''
-    insertArg = {'createuserid':0}
+    insertArg = {}
     # 获取用户传递的变量数据并判断    
     try:
         # 获取json传递的变量
@@ -145,6 +152,8 @@ def postCreateDept():
                 current_app.logger.info('No argument username input')
                 raise PostNoParaError(message='post request havent json payload',
                                       arguname='deptname')
+            # createuser 取session内的数据
+            insertArg['createuserid'] = session.get('user_id')
         else:
             current_app.logger.info('No query para input')
             raise PostNoParaError(message='post request havent json payload',
@@ -173,6 +182,7 @@ def postCreateDept():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -204,7 +214,7 @@ def postCreatePrject():
             (nextval('edm_test_schema.seq_tprjproject_projectid'), :ownerid, :projectcode, :projectname, :prjinitiatorid,
              :prjbrif, :prjcreationday, :createuserid)
     '''
-    insertArg = {'createuserid':0}
+    insertArg = {}
     # 获取用户传递的变量数据并判断    
     try:
         # 获取json传递的变量
@@ -262,6 +272,8 @@ def postCreatePrject():
                 current_app.logger.info('No argument prjcreationday input')
                 raise PostNoParaError(message='post request havent json payload',
                                       arguname='prjcreationday')
+            # createuser 取session内的数据
+            insertArg['createuserid'] = session.get('user_id')
         else:
             current_app.logger.info('No query para input')
             raise PostNoParaError(message='post request havent json payload',
@@ -279,6 +291,7 @@ def postCreatePrject():
     except Exception as err:
         current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='521',
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
@@ -300,6 +313,7 @@ def postCreatePrject():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -312,7 +326,8 @@ def postCreatePrject():
                                   rbody=returnData)
     except Exception as err:
         current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
-        current_app.logger.debug(err)
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
@@ -332,7 +347,7 @@ def postCreateEvent():
             (nextval('edm_test_schema.seq_tprjevent_eventid'), :projectid, to_timestamp(:eventtime,'yyyy-mm-dd hh24:mi:ss'), :eventcreationid, :eventstatus, 
              :eventmsg, :createuserid)
     '''
-    insertArg = {'createuserid':0}
+    insertArg = {}
     argList = [('projectid',1),('eventtime',1),('eventcreationid',1),('eventstatus',1),('eventmsg',0)]
     # 获取用户传递的变量数据并判断 
     try:
@@ -341,6 +356,8 @@ def postCreateEvent():
         if inputPara is not None:
             # 处理需要插入的数据
             insertArg = insertSqlParaGenerator(rpara=inputPara,isexist=argList,defaultinsarg=insertArg)
+            # createuser 取session内的数据
+            insertArg['createuserid'] = session.get('user_id')
         else:
             current_app.logger.info('No query para input')
             raise PostNoParaError(message='post request havent json payload',
@@ -361,6 +378,7 @@ def postCreateEvent():
     except Exception as err:
         current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='521',
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
@@ -375,6 +393,7 @@ def postCreateEvent():
     except exc.SQLAlchemyError as err:
         current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1501',
                                          'error_msg':'SQLAlchemyError, please check log file to find detail error message',
@@ -382,6 +401,7 @@ def postCreateEvent():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -394,7 +414,8 @@ def postCreateEvent():
                                   rbody=returnData)
     except Exception as err:
         current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
-        current_app.logger.debug(err)
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
@@ -412,7 +433,7 @@ def postCreatePrjMember():
             values 
             (:projectid, :userid, :memberstatus, :createuserid)
     '''
-    insertArg = {'createuserid':0}
+    insertArg = {}
     argList = [('projectid',1),('userid',1),('memberstatus',1)]
     # 获取用户传递的变量数据并判断 
     try:
@@ -421,6 +442,8 @@ def postCreatePrjMember():
         if inputPara is not None:
             # 处理需要插入的数据
             insertArg = insertSqlParaGenerator(rpara=inputPara,isexist=argList,defaultinsarg=insertArg)
+            # createuser 取session内的数据
+            insertArg['createuserid'] = session.get('user_id')
         else:
             current_app.logger.info('No query para input')
             raise PostNoParaError(message='post request havent json payload',
@@ -441,6 +464,7 @@ def postCreatePrjMember():
     except Exception as err:
         current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='521',
                                   rbody={'error_code':1699,
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
@@ -455,6 +479,7 @@ def postCreatePrjMember():
     except exc.SQLAlchemyError as err:
         current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1501',
                                          'error_msg':'SQLAlchemyError, please check log file to find detail error message',
@@ -462,6 +487,7 @@ def postCreatePrjMember():
     except Exception as err:
         current_app.logger.error('something was wrong, db will rollback this transaction data ')
         current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         db.session.rollback()
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
@@ -474,7 +500,8 @@ def postCreatePrjMember():
                                   rbody=returnData)
     except Exception as err:
         current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
-        current_app.logger.debug(err)
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
