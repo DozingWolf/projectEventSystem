@@ -237,5 +237,6 @@ def isAdminCheck(func):
         else:
             return responseStructures(rstatus='403',
                                           rbody={'error_code':1000,
-                                                 'error_msg':'this url only admin are allowed to visit',
+                                                 'error_msg':'only admin are allowed to visit this url',
                                                  'args':''})
+    return adminCheck
