@@ -1,10 +1,12 @@
 from flask import Blueprint,current_app,session
 from auth.authManager import isLoginCheck,isPermissionCheck
 from tool.responseGenerator import responseStructures
+from controller.tracer import queryTracerLog
 
 helloBP = Blueprint('helloPage',__name__)
 
 @helloBP.route('/hello',methods=['GET'])
+@queryTracerLog
 @isLoginCheck
 @isPermissionCheck
 def hello():
