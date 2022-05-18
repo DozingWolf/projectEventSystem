@@ -1,4 +1,3 @@
-from crypt import methods
 from flask import Blueprint,current_app,request,session
 from sqlalchemy import exc
 from werkzeug.security import generate_password_hash
