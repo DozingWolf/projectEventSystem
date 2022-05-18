@@ -10,6 +10,10 @@ from tool.dataTranser import b64TransString
 from controller.errorlist import AuthNoPermissionError,AuthError,DBDataError
 
 authManagerBP = Blueprint('authUser',__name__)
+# 现在的登录设置已经满足普通web的登录要求
+# 考虑下微信小程序的需求，需要建立一套支持微信自定义登录认证方式的接口
+# 同时需要考虑对普通web和微信登录的兼容性
+# 可能要考虑使用JWT的Token功能，那这样对原有的web认证方式冲击比较大
 
 @authManagerBP.route('/loginUser',methods=['POST'])
 def loginUser():
@@ -184,9 +188,33 @@ def mustLogin():
                                      'error_msg':'u must login system to check this intf',
                                      'args':''})
 
+def wechatMiniPrgLogin():
+# 微信小程序登录系统
+    pass
+
+def wechatMiniPrgLogout():
+# 微信小程序登出系统
+    pass
+
+def wechatServerAuth():
+# 获取微信公共认证服务
+    pass
+
+def userTokenCreater():
+# 利用JWT生成用户的Token
+# 将用户的一些基础信息也压入Token并加密
+    pass
+
+def userTokenSolution():
+# 解算用户传递来的Token
+    pass
+
 def isLoginCheck(func):
     # 系统登陆校验装饰器
     # 如果未登录返回未授权错误401
+    # 当出现小程序时，需要设计一套新的登录校验机制
+    # 小程序前端使用token，web前端使用cookie-session，
+    # 设想先根据Header中referer或者自定义头进行分离，再根据不同的方法去做逻辑判断
     @wraps(func)
     def loginCheck(*args, **kwargs):
         if session.get('logged_in'):
