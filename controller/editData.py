@@ -5,6 +5,7 @@ from time import strftime,localtime
 from traceback import print_exc
 from model import db
 from tool.responseGenerator import responseStructures
+from tool.sqlGenerator import updateSqlGenerator
 from controller.errorlist import PostNoParaError,PostParaEmptyError,AuthNoPermissionError
 from auth.authManager import isLoginCheck,isPermissionCheck
 
@@ -143,5 +144,85 @@ def editProject():
 # 项目基础信息修改接口
 # 项目基础信息可以修改，包括以下几个字段信息
 # projectcode项目编码 projectname项目名 prjinitiatorid项目发起人 prjbrif项目简介 prjcreationday项目发起时间
+# 设计传参结构
+# {'set':{
+#         'col_a':'something',
+#         'col_b':'something',
+#         ['col':'something']
+#        },
+#  'where':{
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           ['col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 }]
+#          }
+# }
 # 允许字段不传值
-    pass
+    updateArg = {}
+    localUpdateSet = []
+    try:
+        # 获取json传递的变量
+        inputPara = request.get_json()
+        current_app.logger.debug(inputPara)
+        if inputPara is not None:
+            # 处理需要更新的数据
+            # 考虑是update语句，需要处理set部分和where部分
+            if 'set' in inputPara:
+                current_app.logger.debug(inputPara['set'])
+                # projectcode 项目代码
+                if 'projectcode' in inputPara['set']:
+                    valueNoneemptyJudgement(input=inputPara['set']['projectcode'],argsname='projectcode')
+                    localUpdateSet.append('projectcode = :projectcode')
+                    updateArg['projectcode'] = inputPara['set']['projectcode']
+                # projectname 项目名
+                if 'projectname' in inputPara['set']:
+                    valueNoneemptyJudgement(input=inputPara['set']['projectname'],argsname='projectcode')
+                    localUpdateSet.append('projectname = :projectname')
+                    updateArg['projectname'] = inputPara['set']['projectname']
+                # prjinitiatorid 项目发起人
+                # prjbrif 项目简介
+                # prjcreationday 项目发起时间
+            else:
+                raise PostNoParaError(message='post request havent enough json payload',
+                                      arguname='set')
+            # modifyuserid 编辑用户id
+            # 从session内取
+            updateArg['modifyuserid'] = session.get('user_id')
+            # modifydate 编辑时间
+            modifyDate = strftime('%Y-%m-%d %H:%M:%S',localtime())
+            updateArg['modifydate'] = modifyDate
+            # 更新查询条件
+            # 项目更新需要考虑多种更新的操作
+            # 可以考虑到的有按照项目编码(id = data)进行更新
+            # 是否存在用户批量更新多个项目的情况？
+            # 此处优先考虑单条数据处理的情况
+            if 'where' in inputPara:
+                pass
+            else:
+                raise PostNoParaError(message='post request havent enough json payload',
+                                      arguname='where')
+        else:
+            current_app.logger.info('No query para input')
+            raise PostNoParaError(message='post request havent json payload',
+                                  arguname='')
+    except Exception as err:
+        current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='521',
+                                  rbody={'error_code':1699,
+                                         'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
+                                         'args':''})
+    current_app.logger.debug(updateArg)
+    updateSqlGenerator(setpara={},
+                       querypara={},
+                       tname='edm_test_schema.tprjproject')
+    return responseStructures(rstatus='200',rbody={})

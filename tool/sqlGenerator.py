@@ -63,3 +63,32 @@ def insertSqlParaGenerator(rpara:list,isexist:list,defaultinsarg:dict):
     else:
         current_app.logger.info('No argument input')
         return insertArg
+
+def updateSqlGenerator(setpara:dict,querypara:dict,tname:str):
+# update tablename set col_1 = something , col_2 = something where col_3 = something and col_4 = something
+# 设计传参结构
+# {'set':{
+#         'col_a':'something',
+#         'col_b':'something',
+#         ['col':'something']
+#        },
+#  'where':{
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           ['col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 }]
+#          }
+# }
+# 设计传参json如上，设想，如果想要用一个自动方式处理，就需要对set部分和where部分做遍历
+# 遍历的时候，为了确定这个参数是否正确，可能需要给一个参数列表用于确定这个数据的正确名称
+# where条件也同理
+    queryModel = 'update %s set '%tname
+    current_app.logger.debug(queryModel)
