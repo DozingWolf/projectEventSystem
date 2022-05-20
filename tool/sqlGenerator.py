@@ -64,7 +64,7 @@ def insertSqlParaGenerator(rpara:list,isexist:list,defaultinsarg:dict):
         current_app.logger.info('No argument input')
         return insertArg
 
-def updateSqlGenerator(setpara:dict,querypara:dict,tname:str):
+def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tname:str):
 # update tablename set col_1 = something , col_2 = something where col_3 = something and col_4 = something
 # 设计传参结构
 # {'set':{
@@ -90,5 +90,66 @@ def updateSqlGenerator(setpara:dict,querypara:dict,tname:str):
 # 设计传参json如上，设想，如果想要用一个自动方式处理，就需要对set部分和where部分做遍历
 # 遍历的时候，为了确定这个参数是否正确，可能需要给一个参数列表用于确定这个数据的正确名称
 # where条件也同理
-    queryModel = 'update %s set '%tname
-    current_app.logger.debug(queryModel)
+    queryModel = ['update %s set '%tname]
+    queryParameter = {}
+    # current_app.logger.debug(queryModel)
+    if not querypara.get('set'):
+        # 如果传入的set部分字典值为空，抛出错误
+        # 用exception占个位，后续改成自定义错误值
+        raise Exception('1')
+    if not querypara.get('where'):
+        # 如果传入的query部分字典值为空，抛出错误
+        # 用exception占个位，后续改成自定义错误值
+        raise Exception('2')
+    for setKey,setValue in querypara.get('set').items():
+        print(setKey,'-----',setValue)
+        if setKey in setchecklist:
+            # set部分，因为是更新，每个值都不应该是空值，所以都要做非空校验
+            valueNoneemptyJudgement(input=setValue,argsname=setKey)
+            # 完成非空校验后进行sql构造和传参
+            # 此处需要考虑，最后一个set之后，是没有逗号的
+            # 或者，只有一个set条件之后，也是没有逗号的
+            queryModel.extend([setKey,' = :%s ,'%setKey])
+            queryParameter[setKey] = setValue
+        else:
+            # 如果值为空，抛出错误
+            # 用exception占个位，后续改成自定义错误值
+            raise Exception('3')
+    # 此处要考虑一个问题，where条件的where字符，什么时候拼上去？
+    queryModel.append('where 1=1')
+    for whereKey,whereValue in querypara.get('where').items():
+        print(whereKey,'-----',whereValue)
+        if whereKey in querychecklist:
+            # where部分的校验
+            # where是一个嵌套的二层字典，需要定位到值和运算符kv对进行校验
+            valueNoneemptyJudgement(input=whereValue.get('data'),argsname=whereKey)
+            # 构造where条件第一部分
+            queryModel.extend(['and %s '%whereKey])
+            # 为防止set和where条件有同一个字段，需要对绑定变量名进行别名处理
+            newWhereParaName = 'where_'+whereKey
+            # 判断计算条件 > < >= <= != 等
+            if whereValue.get('operation') == 'equl':
+                # = 计算
+                queryModel.append('=')
+            elif whereValue.get('operation') == 'gret':
+                # > 计算
+                pass
+            elif whereValue.get('operation') == 'lest':
+                # < 计算
+                pass
+            elif whereValue.get('operation') == 'neql':
+                # != 计算
+                pass
+            else:
+                # 不支持的运算符，抛出错误
+                raise Exception('5')
+            # 构造where条件数值部分
+            queryModel.extend([':%s'%newWhereParaName])
+            queryParameter[newWhereParaName] = whereValue.get('data')
+        else:
+            # 若为空，抛出错误
+            raise Exception('4')
+    print(' '.join(queryModel))
+    print(queryParameter)
+        
+
