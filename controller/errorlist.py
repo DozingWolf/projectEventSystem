@@ -131,3 +131,12 @@ class DBDataError(Exception):
         self.message = message
         self.status = status
         self.arguname = arguname
+
+class SqlBuilderError(Exception):
+    code = '524'
+    error_code = '1800'
+    def __init__(self, message, arguname, status=-1):
+        super().__init__(message, arguname, status)
+        self.message = message
+        self.status = status
+        self.arguname = arguname
