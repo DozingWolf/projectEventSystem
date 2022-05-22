@@ -1,7 +1,7 @@
 from flask import Blueprint,current_app,session
 from auth.authManager import isLoginCheck,isPermissionCheck
 from tool.responseGenerator import responseStructures
-from controller.tracer import queryTracerLog
+from controller.dataTraceRecorder import queryTracerLog
 
 helloBP = Blueprint('helloPage',__name__)
 
