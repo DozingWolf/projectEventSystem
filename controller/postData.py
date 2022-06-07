@@ -4,9 +4,9 @@ from traceback import print_exc
 from werkzeug.security import generate_password_hash
 from model import db
 from tool.dataTranser import dateStrTransTimestamp
-from tool.sqlGenerator import insertSqlParaGenerator
+from tool.sqlGenerator import insertSqlParaGenerator,insertSqlParaGenerator_batch
 from tool.responseGenerator import responseStructures
-from controller.errorlist import PostNoParaError,PostParaEmptyError
+from controller.errorlist import PostNoParaError,PostParaEmptyError, PostParaError
 from auth.authManager import isLoginCheck,isPermissionCheck
 
 postDataBP = Blueprint('postData',__name__)
@@ -506,3 +506,84 @@ def postCreatePrjMember():
                                   rbody={'error_code':'1599',
                                          'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
                                          'args':''})
+
+@postDataBP.route('/createPermission',methods=['POST'])
+def createPermission():
+# 设计传参结构
+# {'column':[col_a,col_b,col_c],
+#  'values':[
+#            [v_1,v_2,v_3],
+#            [v_1,v_2,v_3],
+#            [v_1,v_2,v_3]
+#           ]
+# }
+    # 获取用户传递的变量数据并判断 
+    try:
+        # 获取json传递的变量
+        inputPara = request.get_json()
+        insertSql , insertParaList = insertSqlParaGenerator_batch(insertpara=inputPara,
+                                                                  checklist=['permissionid','permissionname','urlitem'],
+                                                                  tname='edm_test_schema.tmstpermission')
+    except PostParaEmptyError as empvalue:
+        return responseStructures(rstatus=empvalue.code,
+                                  rbody={'error_code':empvalue.error_code,
+                                         'error_msg':empvalue.message,
+                                         'args':empvalue.arguname})
+    except PostNoParaError as nopara:
+        return responseStructures(rstatus=nopara.code,
+                                  rbody={'error_code':nopara.error_code,
+                                         'error_msg':nopara.message,
+                                         'args':nopara.arguname})
+    except PostParaError as perr:
+        return responseStructures(rstatus=perr.code,
+                                  rbody={'error_code':perr.error_code,
+                                         'error_msg':perr.message,
+                                         'args':perr.args})
+    except Exception as err:
+        current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='521',
+                                  rbody={'error_code':1699,
+                                         'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
+                                         'args':''})
+    # 记录insert数据
+    current_app.logger.debug(insertSql)
+    current_app.logger.debug(insertParaList)
+    # 执行查询
+    try:
+        exeSQL = db.session.execute(insertSql,insertParaList)
+        db.session.commit()
+    except exc.SQLAlchemyError as err:
+        current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1501',
+                                         'error_msg':'SQLAlchemyError, please check log file to find detail error message',
+                                         'args':''})
+    except Exception as err:
+        current_app.logger.error('something was wrong, db will rollback this transaction data ')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        db.session.rollback()
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1599',
+                                         'error_msg':'DB Unknow Error, data have been rollback, please check log file to find detail error message',
+                                         'args':''})
+    # 处理数据成为json
+    try:
+        returnData = {'error_code':'2000','error_msg':'insert success','dataset':'None'}
+        return responseStructures(rstatus='200',
+                                  rbody=returnData)
+    except Exception as err:
+        current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1599',
+                                         'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
+                                         'args':''})
+
+def createPermissionGroup():
+    pass

@@ -2,7 +2,7 @@ from flask import current_app,session
 from sys import exc_info
 from time import strftime,localtime
 from tool.dataTranser import dateStrTransTimestamp
-from controller.errorlist import PostParaEmptyError,PostNoParaError,SqlBuilderError
+from controller.errorlist import PostParaError,PostParaEmptyError,PostNoParaError,SqlBuilderError
 
 def valueNoneemptyJudgement(input,argsname:str):
     if len(str(input)) == 0:
@@ -65,6 +65,80 @@ def insertSqlParaGenerator(rpara:list,isexist:list,defaultinsarg:dict):
         current_app.logger.info('No argument input')
         return insertArg
 
+def insertSqlParaGenerator_batch(insertpara:dict,checklist:list,tname:str):
+# 新写一个insert构造器
+# insert into tablename (col_a,col_b,col_c[,col_n]) values (v_1,v_2,v_3[,v_n])
+# 设计传参结构
+# {'column':[col_a,col_b,col_c],
+#  'values':[
+#            [v_1,v_2,v_3],
+#            [v_1,v_2,v_3],
+#            [v_1,v_2,v_3]
+#           ]
+# }
+    queryModel = ['insert into %s ('%tname]
+    queryValueModel = ['values (']
+    queryParameter = []
+    # current_app.logger.debug(queryModel)
+    if not insertpara.get('column'):
+        # 如果传入的column部分字典值为空，抛出错误
+        raise PostNoParaError(message='post request havent json payload',
+                              arguname='column')
+    if not insertpara.get('values'):
+        # 如果传入的column部分字典值为空，抛出错误
+        raise PostNoParaError(message='post request havent json payload',
+                              arguname='values')
+    if len(insertpara.get('values')) == 0:
+        # 如果values没有任何数据，报个错
+        raise PostParaEmptyError(message='empty payload',
+                                 arguname='values')
+    if len(insertpara.get('column')) != len(insertpara.get('values')[0]):
+        # 如果column定义的字段数量和values提供的数值数量不一致，报个错
+        raise PostParaError(message='the numbers of column not equl the number of values',
+                            arguname='column,values')
+    for insColValue in insertpara.get('column'):
+        # 处理insert段
+        # 代码收尾用createuserid进行，这样就不需要判断逗号的问题了
+        # 发现一个问题，如果数据有sequence序列怎么处理？
+        queryModel.append('%s,'%insColValue)
+        queryValueModel.append(':insColValue,')
+    queryModel.append('createuserid)')
+    queryValueModel.append(':createuserid)')
+    queryModel.extend(queryValueModel)
+    current_app.logger.debug(queryModel)
+    for insKey,insValue in enumerate(insertpara.get('values')):
+        # 构造一个接受批量插入的数据集
+        current_app.logger.debug('insValue is:')
+        current_app.logger.debug(insValue)
+        insValue.append(session.get('user_id'))
+        queryParameter.append(insValue)
+    return ' '.join(queryModel) , queryParameter
+
+def selectSqlGenerator(querypara:dict,querychecklist:list,tname:str):
+# 设计一个查询构造器
+# 基本可以借用update构造器的where部分
+# select有时候是count计算，是不是考虑处理一下？
+# 或者构造器保持简洁，count与否由上层代码来处理？
+# {
+#  'type':'count'|'select',
+#  'col':['col_a','col_b'],
+#  'where':{
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           'col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 },
+#           ['col':{
+#                  'operation':'equl',
+#                  'data':'somevalue'
+#                 }]
+#          }
+# }
+    pass
+
 def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tname:str):
 # update tablename set col_1 = something , col_2 = something where col_3 = something and col_4 = something
 # 设计传参结构
@@ -104,10 +178,11 @@ def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tnam
         # 用exception占个位，后续改成自定义错误值
         raise PostNoParaError(message='post request havent json payload',
                               arguname='where')
-    setPartFlag = len(querypara.get('set').items())
-    calcFlag = 0
+    # setPartFlag = len(querypara.get('set').items())
+    # calcFlag = 0
     for setKey,setValue in querypara.get('set').items():
-        current_app.logger.debug(setKey,'-----',setValue)
+        current_app.logger.debug(setKey)
+        current_app.logger.debug(setValue)
         if setKey in setchecklist:
             # set部分，因为是更新，每个值都不应该是空值，所以都要做非空校验
             valueNoneemptyJudgement(input=setValue,argsname=setKey)
@@ -115,6 +190,7 @@ def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tnam
             # 此处需要考虑，最后一个set之后，是没有逗号的
             # 或者，只有一个set条件之后，也是没有逗号的
             # 不需要考虑了，因为还有默认的修改日期和修改人条件，让那两个条件处理语句收口
+            # 新增两种情况，1是传入的是一个list，需要考虑；2是传入是一个日期，需要考虑校验
             queryModel.extend([setKey,'= :%s ,'%setKey])
             queryParameter[setKey] = setValue
         else:
@@ -143,7 +219,8 @@ def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tnam
     # 此处要考虑一个问题，where条件的where字符，什么时候拼上去？
     queryModel.append('where 1=1')
     for whereKey,whereValue in querypara.get('where').items():
-        current_app.logger.debug(whereKey,'-----',whereValue)
+        current_app.logger.debug(whereKey)
+        current_app.logger.debug(whereValue)
         if whereKey in querychecklist:
             # where部分的校验
             # where是一个嵌套的二层字典，需要定位到值和运算符kv对进行校验
@@ -171,13 +248,23 @@ def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tnam
             elif whereValue.get('operation') == 'lesteq':
                 # <= 计算
                 queryModel.append('<=')
+            elif whereValue.get('operation') == 'in':
+                # in 计算
+                queryModel.append('in')
+            elif whereValue.get('operation') == 'like':
+                # like 计算
+                queryModel.append('like')
             else:
                 # 不支持的运算符，抛出错误
                 raise SqlBuilderError(message='mismatch mathematical symbol',
                                       arguname='key:where.%s.operation value:%s'%(whereKey,whereValue.get('operation')))
             # 构造where条件数值部分
             queryModel.extend([':%s'%newWhereParaName])
-            queryParameter[newWhereParaName] = whereValue.get('data')
+            # 根据sqlalchemy的奇怪特性，需要把list的参数转为tuple才可以绑定变量
+            if isinstance(whereValue.get('data'),list):
+                queryParameter[newWhereParaName] = tuple(whereValue.get('data'))
+            else:
+                queryParameter[newWhereParaName] = whereValue.get('data')
         else:
             # 如果给定的where值不存在于检查list，存在安全性风险
             # 抛出错误
@@ -187,4 +274,17 @@ def updateSqlGenerator(querypara:dict,setchecklist:list,querychecklist:list,tnam
     current_app.logger.debug(queryParameter)
     return ' '.join(queryModel) , queryParameter
         
-
+def deleteSqlGenerator(querypara:dict,querychecklist:list,tname:str):
+# 删除语句构造器
+# delete from table where col_1 = something and col_2 = something 
+# 设计传参结构
+# {
+#     'where':{
+#         'col_1':'someting',
+#         'col_2':2,
+#         'col_3':[1,2,3,4]
+#     }
+# }
+# 理论上不建议做任何的物理删除操作
+# 用逻辑删除标记来进行替代比较合适
+    pass

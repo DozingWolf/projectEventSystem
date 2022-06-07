@@ -1,4 +1,3 @@
-from crypt import methods
 from flask import Blueprint,current_app,request,session
 from sqlalchemy import exc
 from werkzeug.security import generate_password_hash
@@ -130,19 +129,21 @@ def editPasswd():
                                          'args':''})
     # 处理数据成为json
     try:
-        returnData = {'error_code':'2000','error_msg':'insert success','dataset':'None'}
+        returnData = {'error_code':'2000','error_msg':'update success','dataset':'None'}
         return responseStructures(rstatus='200',
                                   rbody=returnData)
     except Exception as err:
-        current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error('something was wrong, database have been updated, but make response was failed, please check log file to find detail error message')
         current_app.logger.error(err)
         current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
-                                         'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
+                                         'error_msg':'Server Unknow Error, database have been updated, please check log file to find detail error message',
                                          'args':''})
 
 @editDataBP.route('/editProject',methods=['POST'])
+@queryTracerLog
+@isLoginCheck
 def editProject():
 # 项目基础信息修改接口
 # 项目基础信息可以修改，包括以下几个字段信息
@@ -169,7 +170,7 @@ def editProject():
 #          }
 # }
 # 允许字段不传值
-    updateArg = {}
+    # updateArg = {}
     # localUpdateSet = []
     try:
         # 获取json传递的变量
@@ -177,8 +178,8 @@ def editProject():
         current_app.logger.debug(inputPara)
         if inputPara is not None:
             # 处理需要更新的数据
-            updateSQL , updatePara  = updateSqlGenerator(querypara=inputPara,
-                                                         setchecklist=['projectcode','projectname','prjinitiatorid','prjbrif','prjcreationday'],
+            updateSQL , updateArg  = updateSqlGenerator(querypara=inputPara,
+                                                         setchecklist=['projectcode','projectname','prjinitiatorid','prjbrif','prjcreationday','status'],
                                                          querychecklist=['projectid','ownerid'],
                                                          tname='edm_test_schema.tprjproject')
             # # 考虑是update语句，需要处理set部分和where部分
@@ -244,7 +245,7 @@ def editProject():
                                          'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
                                          'args':''})
     current_app.logger.debug(updateSQL)
-    current_app.logger.debug(updatePara)
+    current_app.logger.debug(updateArg)
     # 执行查询
     try:
         exeSQL = db.session.execute(updateSQL,updateArg)
@@ -269,19 +270,21 @@ def editProject():
                                          'args':''})
     # 处理数据成为json
     try:
-        returnData = {'error_code':'2000','error_msg':'insert success','dataset':'None'}
+        returnData = {'error_code':'2000','error_msg':'update success','dataset':'None'}
         return responseStructures(rstatus='200',
                                   rbody=returnData)
     except Exception as err:
-        current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error('something was wrong, database have been updated, but make response was failed, please check log file to find detail error message')
         current_app.logger.error(err)
         current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
-                                         'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
+                                         'error_msg':'Server Unknow Error, database have been updated, please check log file to find detail error message',
                                          'args':''})
 
 @editDataBP.route('/editDept',methods=['POST'])
+@queryTracerLog
+@isLoginCheck
 def editDept():
 # 部门基础信息修改接口
 # 部门基础信息可以修改，包括以下几个字段信息
@@ -350,19 +353,21 @@ def editDept():
                                          'args':''})
     # 处理数据成为json
     try:
-        returnData = {'error_code':'2000','error_msg':'insert success','dataset':'None'}
+        returnData = {'error_code':'2000','error_msg':'update success','dataset':'None'}
         return responseStructures(rstatus='200',
                                   rbody=returnData)
     except Exception as err:
-        current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error('something was wrong, database have been updated, but make response was failed, please check log file to find detail error message')
         current_app.logger.error(err)
         current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
-                                         'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
+                                         'error_msg':'Server Unknow Error, database have been updated, please check log file to find detail error message',
                                          'args':''})
 
 @editDataBP.route('/editProjectEvent',methods=['POST'])
+@queryTracerLog
+@isLoginCheck
 def editProjectEvent():
 # 项目事件修改接口
 # 项目事件可以修改，包括以下几个字段信息
@@ -433,14 +438,95 @@ def editProjectEvent():
                                          'args':''})
     # 处理数据成为json
     try:
-        returnData = {'error_code':'2000','error_msg':'insert success','dataset':'None'}
+        returnData = {'error_code':'2000','error_msg':'update success','dataset':'None'}
         return responseStructures(rstatus='200',
                                   rbody=returnData)
     except Exception as err:
-        current_app.logger.error('something was wrong, db have been inserted into db, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error('something was wrong, database have been updated, but make response was failed, please check log file to find detail error message')
         current_app.logger.error(err)
         current_app.logger.error(print_exc())
         return responseStructures(rstatus='522',
                                   rbody={'error_code':'1599',
-                                         'error_msg':'Server Unknow Error, data have been inserted into db, please check log file to find detail error message',
+                                         'error_msg':'Server Unknow Error, database have been updated, please check log file to find detail error message',
+                                         'args':''})
+
+@editDataBP.route('/editProjectMember',methods=['POST'])
+@queryTracerLog
+@isLoginCheck
+def editProjectMember():
+# 项目参与人修改接口
+    updateArg = {}
+    try:
+        # 获取json传递的变量
+        inputPara = request.get_json()
+        current_app.logger.debug(inputPara)
+        if inputPara is not None:
+            # 处理需要更新的数据
+            updateSQL , updatePara  = updateSqlGenerator(querypara=inputPara,
+                                                         setchecklist=['memberstatus','status'],
+                                                         querychecklist=['projectid','userid'],
+                                                         tname='edm_test_schema.trltprjmember')
+        else:
+            current_app.logger.info('No query para input')
+            raise PostNoParaError(message='post request havent json payload',
+                                  arguname='')
+    except PostParaEmptyError as empvalue:
+        return responseStructures(rstatus=empvalue.code,
+                                  rbody={'error_code':empvalue.error_code,
+                                         'error_msg':empvalue.message,
+                                         'args':empvalue.arguname})
+    except PostNoParaError as nopara:
+        return responseStructures(rstatus=nopara.code,
+                                  rbody={'error_code':nopara.error_code,
+                                         'error_msg':nopara.message,
+                                         'args':nopara.arguname})
+    except SqlBuilderError as sqlbud:
+        return responseStructures(rstatus=sqlbud.code,
+                                  rbody={'error_code':sqlbud.error_code,
+                                         'error_msg':sqlbud.message,
+                                         'args':sqlbud.arguname})
+    except Exception as err:
+        current_app.logger.error('Unknow Error when analyze post requests para, please chack log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='521',
+                                  rbody={'error_code':1699,
+                                         'error_msg':'Unknow Error when analyze post requests para, please chack log file to find detail error message',
+                                         'args':''})
+    current_app.logger.debug(updateSQL)
+    current_app.logger.debug(updatePara)
+    # 执行查询
+    try:
+        exeSQL = db.session.execute(updateSQL,updateArg)
+        db.session.commit()
+    except exc.SQLAlchemyError as err:
+        current_app.logger.error('SQLAlchemyError, please check log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        db.session.rollback()
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1501',
+                                         'error_msg':'SQLAlchemyError, please check log file to find detail error message',
+                                         'args':''})
+    except Exception as err:
+        current_app.logger.error('something was wrong, db will rollback this transaction data ')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        db.session.rollback()
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1599',
+                                         'error_msg':'DB Unknow Error, data have been rollback, please check log file to find detail error message',
+                                         'args':''})
+    # 处理数据成为json
+    try:
+        returnData = {'error_code':'2000','error_msg':'update success','dataset':'None'}
+        return responseStructures(rstatus='200',
+                                  rbody=returnData)
+    except Exception as err:
+        current_app.logger.error('something was wrong, database have been updated, but make response was failed, please check log file to find detail error message')
+        current_app.logger.error(err)
+        current_app.logger.error(print_exc())
+        return responseStructures(rstatus='522',
+                                  rbody={'error_code':'1599',
+                                         'error_msg':'Server Unknow Error, database have been updated, please check log file to find detail error message',
                                          'args':''})
