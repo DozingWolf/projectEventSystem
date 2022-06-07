@@ -7,7 +7,7 @@ def queryTracerLog(func):
     @wraps(func)
     def traceLog(*args, **kwargs):
         if session.get('user_id'):
-            userID = session.get('user_id')
+            userID = str(session.get('user_id'))
         else:
             userID = 'Anonymous user'
         queryMethod = request.method
