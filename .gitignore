@@ -134,3 +134,4 @@ dmypy.json
 conf/para.conf
 sql/insert_*.sql
 log/*
+frontend-model/*
